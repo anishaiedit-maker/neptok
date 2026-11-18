@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #090514;
+    color: #ffffff;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+@keyframes chakraRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes chakraPulse {
+  0%, 100% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 18px rgba(255, 200, 55, 0.65));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 34px rgba(255, 215, 80, 0.95));
+  }
+}
+
+@keyframes floatCardA {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes floatCardB {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(6px); }
+}
+
+@keyframes logo3dEntrance {
+  0% {
+    opacity: 0;
+    transform: perspective(700px) rotateY(-24deg) scale(0.84) translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(700px) rotateY(0deg) scale(1) translateY(0);
+  }
+}
+
+@keyframes discSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes marqueeTicker {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes floatHeartUp {
+  0% {
+    opacity: 0.95;
+    transform: translateY(0) scale(0.75) rotate(-8deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-70px) scale(1.15) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-150px) scale(0.9) rotate(-6deg);
+  }
+}
+
+@keyframes giftPop3D {
+  0% {
+    opacity: 0;
+    transform: perspective(800px) scale(0.35) rotateX(25deg) translateY(60px);
+  }
+  30% {
+    opacity: 1;
+    transform: perspective(800px) scale(1.12) rotateX(0deg) translateY(-10px);
+  }
+  80% {
+    opacity: 1;
+    transform: perspective(800px) scale(1) rotateY(12deg) translateY(-14px);
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(800px) scale(1.2) translateY(-50px);
+  }
+}
+
+.animate-chakra-spin {
+  animation: chakraRotate 24s linear infinite, chakraPulse 3.6s ease-in-out infinite;
+}
+
+.animate-float-a {
+  animation: floatCardA 4.2s ease-in-out infinite;
+}
+
+.animate-float-b {
+  animation: floatCardB 4.8s ease-in-out infinite;
+}
+
+.animate-logo-3d {
+  animation: logo3dEntrance 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-disc-spin {
+  animation: discSpin 5s linear infinite;
+}
+
+.animate-marquee {
+  animation: marqueeTicker 14s linear infinite;
+}
+
+.animate-float-heart {
+  animation: floatHeartUp 1.8s ease-out forwards;
+}
+
+.animate-gift-3d {
+  animation: giftPop3D 3.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom sleek dark scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(9, 5, 20, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(157, 0, 255, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 0, 128, 0.65);
+}

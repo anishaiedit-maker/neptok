@@ -1,0 +1,194 @@
+Build a complete, production-ready, cross-platform mobile social & live-streaming application named **"NepTok"** (Nepal's Social & Live Platform) for **Android and iOS**, accompanied by a full **Web Admin Dashboard**.
+
+---
+
+### STRICT ZERO-ALTERATION, LOGO & BACKGROUND LOCK RULES (NON-NEGOTIABLE)
+1. **PAGES 01, 02, 03 & 04 – 100% SAME-TO-SAME BACKGROUND, COLOR & LAYOUT LOCK:**
+   - **Page 01 (`01.jpg`)[cite: 1], Page 02 (`02.jpg`)[cite: 2], Page 03 (`03.jpg`)[cite: 3], and Page 04 (`04.jpg`)[cite: 4] MUST preserve 100% of their exact original backgrounds, colors, proportions, typography, and UI layouts A-to-Z.**
+   - **Page 01 (`01.jpg`) is 100% untouchable:** Do NOT change a single pixel, color, card, or background element of Page 01[cite: 1]. Only apply smooth entrance/loading motion on top of the exact original design[cite: 1].
+   - Do NOT resize, shrink, enlarge, crop, or redesign Pages 01–04[cite: 1, 2, 3, 4].
+2. **STRICT LOGO LOCK (A-TO-Z EXACT LOGO EVERYWHERE – NO EXTRA BACKGROUND):**
+   - Wherever the **NT / NepTok** logo appears (Splash Screen `01.jpg`, Onboarding `02.jpg`, Login `03.jpg`, or headers), render the **exact original transparent logo A-to-Z** as provided in the reference images[cite: 1, 2, 3].
+   - **NEVER add any extra background box, circle, badge, or color fill behind the logo**, and NEVER redraw or alter its shape, font, mountain peaks, pagoda roof, or Nepal flag motif[cite: 1, 2, 3].
+3. **ALL OTHER SCREENS THEME LOCK:** Strictly preserve 100% of the exact visual designs, themes, backgrounds, icons, neon glows, and colors from all remaining reference screenshots (`#090514` to `#140A26` Midnight Black/Dark Purple background with `#FF0080` Neon Pink and `#9D00FF` Neon Purple accents)[cite: 5, 7, 8, 9, 12, 14, 15, 16, 17, 18, 19, 20].
+4. **RICH MOTION & ANIMATIONS (NON-DESTRUCTIVE):**
+   - **Page 01 Splash Screen:** Smooth 3D entrance animation of the exact original **NT** logo, subtle floating motion on the 4 white cards, and animated loading progress before tapping **"Get Started →"**[cite: 1].
+   - **Page 02 Onboarding:** Subtle neon glow pulse on the phone mockup and icons; single-step screen (`Next →` opens Page 03 directly)[cite: 2].
+   - **Page 03 Login / Sign Up:** Continuous glowing & rotating golden **Chakra animation** behind **Gautam Buddha** without altering the background artwork[cite: 3].
+   - **Full-Screen Live & Video Gift Animations:** Sending any gift triggers a rich **3D/Lottie full-screen transparent overlay animation** matching that specific gift with sound effects and sender banner.
+5. **STRICT GIFT COLLECTION LOCK:** Do NOT change, rename, remove, or alter the coin prices or artwork of any of the **48 original gifts** shown in the Gift Store (`Remove_logo_shadow_from_test_f248ebd5_2K.jpg`)[cite: 14].
+6. **TERMINOLOGY & CURRENCY RULES (STRICT):**
+   - Never use "PK" or "PK Battle". Always use **"NEP Live"** and **"NEP Battle"**.
+   - Display all monetary balances, coin packages, creator earnings, and withdrawals strictly in **USD ($)** and **NepTok Coins (N)**[cite: 14, 15, 17]. Never display AED or any other currency anywhere.
+7. **UPDATED BOTTOM NAVIGATION BAR (REELS REPLACED WITH "BELL"):**
+   - Remove the `Reels` tab and replace it with a glowing **Bell Icon (`🔔`)** labeled strictly with the single word **"Bell"** (do NOT write "Notifications" on the tab; write **"Bell"** only).
+   - **Exact Bar Order:** `Profile` | `Live` | `Chat` | `+ (Create - Central Glowing Pink Circle)` | `Bell` | `Wallet` | `Home`[cite: 4, 5].
+
+---
+
+### COMPLETE CONSOLIDATED APP ARCHITECTURE & FEATURES (A-TO-Z)
+
+#### **1. Splash Screen – Page 01 (Ref: `01.jpg` – 100% Same-to-Same, Zero Changes)**
+- Exact `01.jpg` light/white scenic background with Mount Everest, Pagoda temple, Stupa, prayer flags, central 3D Red/Blue **NT** logo (no added background box), 4 floating white cards (Community, Flag, Location, Chat) connected via red/blue lines, and the bottom red-to-blue gradient **"Get Started →"** button[cite: 1].
+- Subtle 3D logo entrance + floating card motion + loading indicator[cite: 1]. Tapping **"Get Started →"** opens Page 02[cite: 1].
+
+#### **2. Single-Step Onboarding – Page 02 (Ref: `02.jpg` – 100% Same-to-Same)**
+- Exact `02.jpg` dark neon pink/purple layout with original **NT NepTok** logo at top (no added background), glowing smartphone live preview mockup (floating 3D pink gift box, heart, play, `LIVE 25.6K`), and `Create`, `Watch`, `Go Live`, `Connect` glowing circular icons[cite: 2].
+- Single-step flow (no multi-slide clicks): tapping **"Next →"** opens Page 03 directly[cite: 2].
+
+#### **3. Login / Sign Up & OTP – Page 03 (Ref: `03.jpg` – 100% Same-to-Same)**
+- Exact `03.jpg` dark cosmic purple background with meditating **Gautam Buddha** at center, Himalayan/pagoda silhouette and Nepal flag at bottom, top-right **"Skip >"**, original **NT NepTok** logo (no added background), `Login` / `Sign Up` toggle tabs, Mobile Number + Password inputs, **"Login →"** button, and Google, Facebook, Apple ID, Email icons[cite: 3].
+- Continuous glowing & rotating golden **Chakra animation** behind Gautam Buddha, full **Mobile Number + SMS OTP Verification**, **Forgot Password** recovery, and Secure Login / Logout[cite: 3].
+
+#### **4. Home Feed – Main Interface (Ref: `04.jpg` – Clean Full-Screen Swipe Feed)**
+- **Exact `04.jpg` Visual Theme & Clean Feed:** Preserve the exact `04.jpg` neon frame, icon style, and layout[cite: 4]. Do NOT show any *"Buddha was born in Nepal"* pop-up or overlay banner when opening Home[cite: 4]. Open directly into the clean, full-screen vertical media feed (supporting both **Photos and Videos**) where swiping up smoothly plays the next creator's video/photo[cite: 4].
+- **Navigation Tabs:** `For You` | `Following` | `Explore`.
+- **Right-Side Vertical Action Stack:**
+  - **Like:** Double-Tap anywhere on photo/video triggers automatic heart animation & Like[cite: 4].
+  - **Gift:** Opens unified Gift Store directly on post & triggers full-screen 3D gift animation when sent[cite: 4].
+  - **Repost** & **Comment** with live counters[cite: 4].
+  - **Profile Follow:** Creator Avatar with `+` quick-follow badge[cite: 4].
+  - **Enhanced Share Sheet (In-App Friends + Visual Brand Icons):**
+    - *Top Row:* **Send to NepTok Friends** (horizontal scrollable list of friends/chats with search and instant **"Send"** button for direct in-app sharing)[cite: 9].
+    - *Bottom Row (With Visible Brand Icons & Labels):* **Facebook**, **WhatsApp**, **Instagram**, **Messenger**, **TikTok**, **Copy Link**, **Other Social Media**, and **Create Story (48 Hours)**[cite: 4].
+- **Original Sound & Uploader Attribution Bar (Below Creator Profile & Caption):**
+  - Directly **below the creator's profile row/caption**, display a spinning music disc icon and scrolling ticker showing **whose original sound is used and who originally uploaded it** (e.g., `🎵 Original Sound – Uploaded by @original_creator`)[cite: 4].
+  - Tapping this Original Sound bar opens the **Original Sound Detail Page** with **"Save Sound"** and **"Use This Sound"** so any user can immediately record/create a new video using that exact audio.
+- **Three-Dot Menu (`...`) – Granular Privacy, Duet, Ad Settings & Owner Controls:**
+  - *Own Video / Photo:*
+    1. **Privacy Settings (4 Granular Visibility Options):** **Everyone (Public)**, **Friends**, **Following / Followers**, and **Private (Only Me)**.
+    2. **Edit Video / Photo**, **Change Caption**, **Replace Thumbnail**[cite: 4].
+    3. **Download**, **Duet Settings** (`Allow Others to Duet` On/Off), **Ad Settings** (in-video monetization ad controls), **Add to Story (48-Hour Story)**, **Save to Draft**, **Delete Video / Photo**, **Manage Comments**, and **Manage Sharing**[cite: 4].
+  - *Others' Video / Photo:* **Report**, **Not Interested**, **Save Video / Photo**, **Download** (if allowed), **Duet** (if allowed), **Share**, **Repost**, **Copy Link**, and **Block User** (immediately hides user's content and adds them to Blocked List)[cite: 4].
+
+#### **5. Create (`+`) – 4-Option Selector, Pro In-Camera Recording Suite & Raw Video Editor (Ref: `CREATEPOST .jpg`)**
+- **Mandatory 4-Option Selector on Tapping `+`:**
+  - Tapping the central **`+`** button MUST first display **4 distinct creation options**[cite: 4]:
+    1. **Video** (Opens the Pro Camera / Video Upload & Full `CREATEPOST .jpg` Video Editor)[cite: 5]
+    2. **Reels** (Opens the vertical short-form Reel Camera & Video Editor)
+    3. **Photo** (Opens a dedicated Photo Upload / Camera & Photo Editor—publishes as a true Photo post)
+    4. **Story (48-Hour Duration)** (Opens a fast, lightweight Story Camera/Uploader with **Story Templates**, text, and stickers—no heavy timeline/color grading clutter. All Stories stay active for **48 hours** instead of 24 hours).
+
+- **A. Pro In-Camera Recording Interface (When Opening Camera / Record):**
+  - **Recording Duration Selector:** Prominent toggle pills above the shutter button for **15s (15 Seconds)** and **60s (60 Seconds)** recording limits.
+  - **Camera Speed Control (Slow-Mo & Fast):** On-screen speed selector (`0.3x Super Slow-Mo`, `0.5x Slow-Mo`, `1x Normal`, `2x Fast`, `3x Hyperlapse`) for smooth slow-motion recording.
+  - **Top & Side Camera Toolbar:**
+    - **Flash Toggle:** Top-bar **Flash (`On` / `Off` / `Auto`)** button for low-light recording.
+    - **Countdown Timer (`Timer`):** Prominent **Timer button (`3s` / `10s` countdown)** with visual on-screen countdown ring and auto-record start for hands-free shooting.
+    - **Flip Camera** (Front / Rear switch).
+  - **Bottom Left & Right Real-Time Effects Carousel (60+ Live Camera Effects):**
+    - Flanking both the **left and right sides of the bottom shutter button**, display a smooth horizontal carousel of **60+ real-time camera effects & filters** applied live before/during recording:
+      - **8K & 4K Ultra-HD Enhancement Filters** (*8K Crystal Sharp, 4K Cinema HDR, Ultra HD Clarity*)
+      - **Beauty, Glow & Makeup Effects** (*Soft Skin Glow, Radiant Dewy Glow, Beauty Blush/Flush, Full Glam Makeup, Lip & Cheek Tint, Lashes & Liner*)
+      - **Cartoon & Stylized Filters** (*3D Cartoon Face, Anime Toon Filter, Comic Sketch, Neon Pop Art*)
+  - **In-Camera Advanced Retouch Panel (Live Face & Body Suite):**
+    - Accessible directly inside the camera screen with real-time precision sliders (`0–100%`) for:
+      - **Eyes Enhancement** (Eye Brighten & Eye Size)
+      - **Under-Eye & Underarm / Body Skin Smoothing** (targeted dark-circle removal and smooth even skin texture across face, neck, and underarms)
+      - **Live Contrast & Glow** (real-time facial luminescence and contrast balance)
+      - **Noise Reduction (De-Noise)** (real-time low-light grain/noise suppression for clean footage)
+
+- **B. Post-Recording / Upload Video & Reels Editor (`CREATEPOST .jpg` – Built for Raw Footage Post-Production):**
+  - **Left Preview:** Vertical real-time preview player with play button, timer (`0:00 / 0:45`), scrubber bar, and fullscreen toggle[cite: 5].
+  - **Right Control Stack (No Music/Amuse Tab – Clean Pro Tools):**
+    1. **Upload Video** & **Record (Camera)**[cite: 5]
+    2. **Templates** (horizontal scrollable video templates)[cite: 5]
+    3. **Filters & Trending AR Effects (80+ Built-in Suite):** Full post-processing library of **80+ trending filters, 8K/4K presets, Cartoon filters, and AR beauty effects** with intensity sliders (`0–100%`)[cite: 5].
+    4. **Pro Skin Retouch (With Precision AI Face Masking):**
+       - **Face Mask Mode:** Automatically detects and **masks ONLY the face** (isolating facial skin from hair, eyes, lips, clothes, and background) so retouching affects only the face cleanly.
+       - Precision sliders (`0–100%`): **Skin Smoothing**, **Blemish & Acne Removal**, **Face Brighten & Glow**, **Eyes & Under-Eye Retouch**, and **Skin Tone Balance**.
+    5. **Adjust – Lumetri-Style Color Grading & HSL Panel (For Raw Footage Editing):**[cite: 5]
+       - **Top Temperature Controls:** Two dedicated temperature sliders (**Color Temperature [Warm/Cool]** and **Tint [Green/Magenta]**).
+       - **Light & Exposure:** **Exposure**, **Contrast**, **Highlights**, **Shadows**, **Whites**, **Blacks**, and **Sharpness**.
+       - **HSL Color Panel (Individual Color Channel Grading):** Dedicated **HSL (Hue, Saturation, Luminance)** tool allowing creators to select and adjust individual colors independently (e.g., boost **Red** only without affecting skin, boost **Green** foliage only, or adjust **Blue, Yellow, Orange, Purple, Cyan, Magenta** individually).
+    6. **Effects** (neon sparkles, hearts, glitch, blur, zoom) & **Stickers** (Nepal flag, crown, fire, heart, cultural stickers)[cite: 5].
+  - **Bottom Multi-Track Precision Timeline & Trimming Suite:**
+    - **Trim Start (Cut Beginning)**, **Trim End (Cut Ending)**, and **Split & Delete Middle Segment** (cut out middle sections seamlessly with auto-ripple join).
+    - **Transitions**, **Speed Control** (`0.3x–3x`), **Crop / Aspect Ratio**, **Thumbnail Selection**, **"CapCut | Edit further in CapCut"** integration & **CapCut Templates**, **"Save as Draft"**, and glowing **"Upload Video ↑" (Publish)**[cite: 5].
+
+- **C. Create Photo & Create Story Editors:**
+  - **Create Photo:** Upload or shoot photo, apply **80+ Filters**, **Pro Skin Retouch**, **Lumetri/HSL Color Adjustments**, **Text**, and **Stickers**, and publish directly as a Photo post.
+  - **Create Story (48 Hours):** Fast capture/upload with **Story Templates**, text, and stickers; active for **48 hours**.
+
+#### **6. TikTok-Style Unified "NEP Live" & In-Stream "NEP Battle" System (Ref: `Remove_logo_and_icon_4c69900d_2K (1).jpg`, `Remove_user_bottom_like_count_f2891f3b_2K.jpg` & `Remove_logo_and_bottom_icon_edc60a6f_2K.jpg`)**
+- **TikTok-Style Live UX Architecture:**
+  - Creators go live in a single unified **NEP Live** screen (or via **OBS / RTMP** with Server URL `rtmp://live.neptok.com/live` & Stream Key)[cite: 19].
+  - **In-Live Controls:** Real-time **80+ Beauty/AR Effects & Face Mask Retouch**, **Mic Mute / Unmute**, **Video Camera On / Off**, **Flip Front / Rear Camera**, **Flash**, **Live Wish List / Gift Goal**, **Pinned Comments**, and **Transparent Scrolling Live Chat** at bottom-left with continuous floating heart bubbles on double-tap.
+  - **In-Stream NEP Battle & Co-Host Request System:** While live, the host or another live creator can send a **"NEP Battle Request"** or **"Co-Host Invite"** directly inside the active stream. Accepting smoothly transitions the active screen into the **Split-Screen VS Interface (`Remove_logo_and_icon_4c69900d_2K (1).jpg`)** (`02:59` battle timer, real-time pink/blue gift score bar, full-screen 3D gift animations, automatic double-tap like counter, winner announcement, and battle history) without dropping viewers[cite: 8].
+  - **Host, Guest & Moderator Controls:** Host can **Add / Remove Moderators** (to mute/block spammers in live chat), **Accept / Invite / Kick** guests, Guests can **Self-Leave / Disconnect** anytime on their own, and Host has a clear **"End Live"** button[cite: 8].
+  - **Live Modes & Capacities:**
+    - **NEP Live / NEP Battle** (Camera Live & 1v1 VS Battle)[cite: 8]
+    - **Audio Live Room:** Supports **Host + up to 30 participants** (`Remove_user_bottom_like_count_f2891f3b_2K.jpg`) with mic mute/unmute, invite, remove, self-leave, and individual/host gifts[cite: 7].
+    - **Video Live / Multi-Guest Room:** Supports **up to 8 simultaneous video participants** in a split grid with individual camera/mic toggles and host moderation.
+    - **OBS / RTMP Studio Live**[cite: 19].
+  - **Live Rankings & Challenges:** Daily Gift Challenge (`128,560 / 250,000`), Top Gifters crowns, **Donate for NepTok**, Daily/Weekly/Monthly Global & Nepal Rankings, and Creator Levels[cite: 8].
+
+#### **7. Chat, Messages & Video/Audio Calls (Ref: `Remove_bottom_icon_and_logo_c184792f_2K.jpg` & `image_47c904.jpg`)**
+- **Messages Inbox:** Scenic Nepal header, filter pills (`All`, `Chats`, `Group`, `Calls`, `Requests`), horizontal online **48-Hour Stories** (`My Story +` + friends with green dots), and conversation list with unread badges[cite: 9].
+- **1-on-1 & Group Chat:** Text, photo/video sharing, voice messages, message requests, and **Block / Unblock User** option.
+- **Active Video Call & Audio Call:** Full-screen Video Call (`image_47c904.jpg`) & Audio Call screens with floating self-view, **Mic Mute / Unmute**, **Stop Video (Camera On/Off)**, **Speaker**, **Live Call Beauty Effects**, **End Call**, and **Call History**[cite: 20].
+
+#### **8. Wallet & Unified Gift Store – With "Gift Store" & "Recharge Your Wallet" Inside Wallet (Ref: `WALLATE.jpg`, `Remove_logo_shadow_from_test_f248ebd5_2K.jpg` & `Remove_bottom_icon_and_logo_12db9e49_2K.jpg`)**
+- **Wallet & Payment Centre ($ USD Only):**
+  - Dual Balance Card: **My Wallet (`12,500 Coins ≈ $125.00`)** and **Creator Balance (`$350.00 >`)**[cite: 15].
+  - Action Tiles: **`Recharge Your Wallet` (Top Up Coins)** | **Earn Coin** | **Withdraw (Creator `$`)** | **Transaction History** | **Linked Accounts** | **Wallet Settings**[cite: 15].
+  - **Prominent "Gift Store" Button Inside Wallet:** At the bottom of the Wallet page (and in the Wallet quick-access bar), include a glowing **"Gift Store"** button/card so users can browse and purchase/send any of the **48 original gifts** directly from Wallet as well as from Live/Home[cite: 14, 15].
+  - **Buy Coins Packages ($ USD):** `100 Coins ($1.00)` up to `10,000 Coins ($100.00 +20% Bonus)`[cite: 15].
+  - **Linked Cards & Payment Accounts:** `Visa`, `Mastercard`, `PayPal`, `Google Pay`, `Apple Pay`, `Wise`, `USDT (Crypto)`, and `Bank Account` with Add/Edit/Remove and Payment Security verification[cite: 12].
+- **Unified Gift Store:** Preserves all **48 original Nepali & iconic gifts** unchanged (`Double Rose 1` to `Sagarmatha 1,000`) with full-screen 3D animations upon sending[cite: 14]. Bottom tabs: `Gift History` | `Sent Gifts` | `Send Gift` | `Received Gifts` | **`Recharge Your Wallet`**[cite: 14].
+
+#### **9. Explore, Notifications ("Bell") & User Profile (Ref: `NepTok_Explore__Discover_Nepal’s_Trends_761995c3_2K.jpg`, `Remove_logo_and_icon_c6ba3fd6_2K.jpg` & `remove_logo_68773040_2K.jpg`)**
+- **Explore & Search:** Voice search, filter pills, category chips, *"Trending in Nepal"* hero banner, Trending Videos, Original Sounds, Live Now, and Suggested Creators with `Follow` buttons[cite: 16].
+- **Bell (Notifications):** Opened via the bottom **"Bell"** tab; filters for `All`, `Likes`, `Comments`, `Follows`, `Gifts`, `Mentions`, `Live Invites`, `Creator Rewards` with `"Follow Back"` buttons[cite: 18].
+- **User Profile:** Scenic Nepali Cover Banner (Golden Gautam Buddha, Mount Everest, Stupa, Pagoda, One-Horned Rhino, *"Proud to be Nepali"*), circular avatar with camera edit, Display Name + verified tick, `@username`, stats (`Followers` | `Following` | `Likes`), 3 primary buttons (**`Edit Profile`**, **`Creator Studio`**, **`My Wallet $256.80`**), clickable **Social & Channel Links** (**YouTube, Instagram, Facebook, TikTok, X, Website**), content tabs (`Grid`, `Live`, `Private`, `Saved`), and top-right **`...` Menu** (plus **Block / Unblock User** when visiting other profiles)[cite: 17].
+
+#### **10. Creator Studio & Detailed Monetization Hub (5,000 Followers Requirement)**
+Accessed via **`Creator Studio`** on Profile or the top-right `...` menu[cite: 17]:
+- **Creator Dashboard & Analytics:** Total Views, Video-wise Earnings (`$`), Live Earnings (`$`), Gift Earnings (`$`), Monthly & Lifetime Earnings, Audience Analytics, Followers Growth, and **Manage Posts**.
+- **Dedicated Monetization Section (How to Earn & Step-by-Step Setup):**
+  - **Eligibility Progress Bar:** Clearly displays **"Minimum 5,000 Followers Required to Unlock Monetization"** + Account Standing verification.
+  - **Two Separate Monetization Modules (With "How It Works" Guide & Apply/Activate Controls):**
+    1. **Content Monetization (Earn from Videos & Photos):** Explains view/engagement RPM payouts in USD (`$`), eligible content criteria, and **Activate Content Monetization** toggle.
+    2. **Gift Monetization (Earn from Live & Video Gifts):** Explains Coin-to-USD (`$`) conversion, live gifting rules, and **Activate Gift Monetization** toggle.
+
+#### **11. Complete Settings, Privacy, Security, Help Center ("Chat with AI") & Block System (Inside Profile Top-Right `...`)**
+Accessed via Profile top-right **`...` Menu**, containing ALL options below without omission[cite: 17]:
+- **Creator & Account Management:** **Creator Studio**, **Creator Dashboard**, **Main Balance ($)**, **Manage Posts**, **Edit Profile** (with YouTube/Social Channel Links), **Manage Payment Methods**, **Switch to Business Account** / **Create Personal Account**, **Switch Account**, and **Log Out**[cite: 17].
+- **Security & Permissions:** **Two-Step Verification (2FA)** (SMS / Email / Authenticator), **Security & Permissions** (login alerts, active devices, camera/mic/contacts permissions), **Change Password**, **Change Phone Number (OTP)**, and **Change Email**.
+- **Privacy & Block System:** **Privacy Account** (`Public` / `Private` profile toggle, comment/duet/download/original-audio permissions), **Following List**, and **Block Account / Blocked List** (view all blocked accounts with search and instant **"Unblock"** button).
+- **Help Center & "Chat with AI" Support Assistant:**
+  - **Help Center:** Searchable FAQ guides, Account & Monetization troubleshooting, Report a Problem, and Safety Center.
+  - **Chat with AI (Dedicated AI Support Assistant):** Prominent **"Chat with AI"** button inside Help Center & Settings. Opens an intelligent, AI-ready conversational support chat interface designed for full AI integration—automatically answering user questions, resolving account/payment/monetization issues 24/7, guiding creators, and escalating complex tickets to human support when needed.
+- **App Content, Storage & Legal:** **Display Language** (`English` / `नेपाली`), **Contact & Location**, **Offline Videos**, **Free Space** (clear cache), **Wallpaper**, **Privacy Center**, **Terms & Policy**, **Deactivate Account**, and **Delete Account**.
+
+---
+
+### AI CENSORSHIP, COPYRIGHT SCAN & AUTO-MODERATION ENGINE (CRITICAL SAFETY SYSTEM)
+Implement a real-time, automated **AI Content Censorship & Copyright Protection Pipeline** scanning all uploaded Videos, Photos, Stories, Comments, and Live Streams (before publishing and continuously during live broadcasts):
+1. **Automated Copyright Audio & Video Scan:** Automatically detects copyrighted music, movies, or stolen third-party content upon upload or live broadcast, muting copyrighted audio segments, warning the creator, or blocking unauthorized uploads.
+2. **Automated Nudity & NSFW Detection:** Computer-vision AI scans every uploaded frame and live video stream in real time for **nudity, sexually explicit content, or NSFW material**, blocking prohibited uploads and auto-terminating violating live streams.
+3. **Automated Community Violence & Harm Detection:** Multi-modal AI detects **graphic violence, blood, weapons, self-harm, hate speech, and bullying/harassment**, quarantining violating content and alerting the Admin Moderation Queue.
+
+---
+
+### BACKEND, ADMIN & INFRASTRUCTURE REQUIREMENTS (ALL 20 POINTS)
+1. Cross-platform **Android & iOS** native/compiled builds.
+2. **Secure OTP & Social Authentication** (Mobile SMS OTP + Google, Facebook, Apple ID, Email).
+3. **TikTok-Grade Low-Latency WebRTC Live Streaming** with in-stream NEP Battle requests, moderators, mic mute/unmute, camera on/off, guest self-leave, host End Live, and real-time AR filters.
+4. **Audio Room Capacity:** Up to **30 simultaneous participants**.
+5. **Video Live Capacity:** Up to **8 simultaneous video participants**.
+6. **OBS / RTMP Integration:** Dedicated RTMP ingest server with dynamic stream keys.
+7. **Live Gift & Coin System:** Real-time ledger & synchronized 3D/Lottie animations for the exact 48 original gifts.
+8. **Pro In-Camera & Post-Production Video/Photo/Story Engine:** Real-time camera recording with **15s/60s timer**, **Slow-Mo (`0.3x–3x`)**, **Countdown Timer (`3s/10s`)**, **Flash**, **60+ Live 8K/4K/Glow/Makeup/Cartoon effects** flanking the shutter button, **In-Camera Advanced Retouch** (Eyes, Under-Eye/Underarm/Skin Smoothing, Contrast, Glow, De-Noise), FFmpeg/GPU trimming (start, end, middle split-cut), Lumetri-style color grading + **HSL individual color channel grading**, **AI Face-Masked Skin Retouch**, Original Sound attribution/reuse, and Duet engine.
+9. **Social Sharing Integration:** In-App Direct Friend Share + Visual Brand Icon Share Sheet (Facebook, WhatsApp, Instagram, Messenger, TikTok, 48-Hour Stories).
+10. **Creator Monetization Engine:** Automated 5,000-follower threshold verification + dual-stream (Content & Gift) USD revenue calculation + Ad Settings controls.
+11. **USD ($) Payment & Withdrawal Integration:** Stripe, PayPal, Apple Pay, Google Pay, Wise, Bank Transfer, and USDT wallet integration.
+12. **Web Admin Dashboard:** User verification, gift catalog, live room moderation, AI censorship review queue, monetization approvals, and payout processing.
+13. **AI Censorship & Auto-Moderation Engine:** Automated Copyright Scan, Nudity/NSFW Detection, and Community Violence/Hate-Speech Auto-Detection.
+14. **User Verification:** Blue tick KYC verification workflow.
+15. **Secure Database & Cloud Storage:** Encrypted PostgreSQL/Supabase + AWS S3 / Cloudflare R2.
+16. **Scalable Microservices & CDN:** Auto-scaling architecture.
+17. **Push Notifications & AI Support:** FCM & APNs notifications + **Chat with AI** automated customer support endpoint.
+18. **Analytics & Reporting:** Real-time creator & platform analytics.
+19. **Privacy & Security:** End-to-end encrypted chat, 2FA, PCI-DSS payments, granular post visibility (`Everyone`, `Friends`, `Followers`, `Private`), and instant user block enforcement.
+20. **Automated Backup & Recovery:** Daily automated database snapshots and multi-region media redundancy.

@@ -1,0 +1,6 @@
+{
+  "name": "NepTok",
+  "description": "Nepal's Social & Live Platform — Cross-platform mobile social, NEP Live & NEP Battle, pro video studio, USD Creator Monetization, and Web Admin Dashboard.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
