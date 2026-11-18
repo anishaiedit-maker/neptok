@@ -1,0 +1,12 @@
+name = "neptok"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "neptok-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "neptok-media"

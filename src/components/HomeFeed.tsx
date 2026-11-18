@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import type { FeedPost, ChatThread, OriginalSound } from '../types/neptok';
 import type { PostVisibility } from '../utils/neptokLogic';
+import { isVideoMediaUrl } from '../utils/streamHelpers';
 
 interface HomeFeedProps {
   posts: FeedPost[];
@@ -119,8 +120,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     commentPostId || sharePost || menuPost || editingCaptionPost || soundDetail
   );
 
-  const isVideoFileUrl = (url: string) =>
-    url.startsWith('data:video/') || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
+  const isVideoFileUrl = (url: string, mime?: string) => isVideoMediaUrl(url, mime);
 
   const handleMediaTap = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!activePost) return;
@@ -292,7 +292,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               transform: dragOffsetY !== 0 ? `translateY(${dragOffsetY}px)` : undefined,
             }}
           >
-            {isVideoFileUrl(activePost.mediaUrl) ? (
+            {isVideoFileUrl(activePost.mediaUrl, activePost.mediaMime) ? (
               <video
                 key={activePost.id}
                 src={activePost.mediaUrl}

@@ -36,6 +36,8 @@ export interface FeedPost {
   authorVerified: boolean;
   authorAvatarColor: string;
   mediaUrl: string;
+  mediaMime?: string;
+  r2Key?: string;
   caption: string;
   hashtags: string[];
   sound: OriginalSound;
@@ -88,6 +90,7 @@ export interface ChatThread {
   handle: string;
   isGroup?: boolean;
   isRequest?: boolean;
+  isArchived?: boolean;
   online: boolean;
   unread: number;
   lastMessage: string;

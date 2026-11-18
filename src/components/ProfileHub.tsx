@@ -43,6 +43,9 @@ import {
 } from '../utils/neptokLogic';
 import type { ChatThread, FeedPost, UserProfile } from '../types/neptok';
 import { ProfileGridVideoPlayerModal } from './ProfileGridVideoPlayerModal';
+import { uploadMediaFile } from '../utils/apiClient';
+import { isVideoMediaUrl } from '../utils/streamHelpers';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface ProfileHubProps {
   user: UserProfile;
@@ -116,6 +119,8 @@ export const ProfileHub: React.FC<ProfileHubProps> = ({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<SettingsView>('main');
   const [blockSearch, setBlockSearch] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const { isInstallable, isInstalled, isIOS, isOnline, promptInstall } = usePWAInstall();
   const [editDraft, setEditDraft] = useState({
     name: user.name,
     bio: user.bio,
@@ -537,13 +542,24 @@ export const ProfileHub: React.FC<ProfileHubProps> = ({
                     onClick={() => onOpenDraftInEditor?.(p)}
                     className="w-full h-full text-left cursor-pointer"
                   >
-                    <img
-                      src={p.thumbnailUrl || p.mediaUrl}
-                      alt={p.caption}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                      style={{ filter: p.cssFilter || 'none' }}
-                    />
+                    {isVideoMediaUrl(p.thumbnailUrl || p.mediaUrl, p.mediaMime) ? (
+                      <video
+                        src={p.thumbnailUrl || p.mediaUrl}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        style={{ filter: p.cssFilter || 'none' }}
+                      />
+                    ) : (
+                      <img
+                        src={p.thumbnailUrl || p.mediaUrl}
+                        alt={p.caption}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        style={{ filter: p.cssFilter || 'none' }}
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                     <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-[#FF0080] text-white text-[9px] font-extrabold uppercase tracking-wide">
                       Draft
@@ -579,13 +595,24 @@ export const ProfileHub: React.FC<ProfileHubProps> = ({
                   onDoubleClick={() => setPlayerPostId(p.id)}
                   className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-[#140A26] border border-white/10 hover:border-[#FF0080]/70 text-left cursor-pointer"
                 >
-                  <img
-                    src={p.thumbnailUrl || p.mediaUrl}
-                    alt={p.caption}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    style={{ filter: p.cssFilter || 'none' }}
-                  />
+                  {isVideoMediaUrl(p.thumbnailUrl || p.mediaUrl, p.mediaMime) ? (
+                    <video
+                      src={p.thumbnailUrl || p.mediaUrl}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      style={{ filter: p.cssFilter || 'none' }}
+                    />
+                  ) : (
+                    <img
+                      src={p.thumbnailUrl || p.mediaUrl}
+                      alt={p.caption}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      style={{ filter: p.cssFilter || 'none' }}
+                    />
+                  )}
                   {p.visibility === 'Private' && (
                     <span
                       data-testid={`private-lock-${p.id}`}
@@ -838,6 +865,28 @@ export const ProfileHub: React.FC<ProfileHubProps> = ({
                       { label: `Display Language (${user.language === 'ne' ? 'नेपाली' : 'English'})`, icon: Globe, action: () => setSettingsView('language') },
                       { label: 'Contact & Location (Kathmandu, Nepal)', icon: Globe, action: () => onNotify('Location & Contacts permissions verified') },
                       { label: 'Offline Videos & Free Space (Clear Cache)', icon: HardDrive, action: () => setSettingsView('storage') },
+                      ...(!isInstalled && (isInstallable || isIOS)
+                        ? [
+                            {
+                              label: isIOS
+                                ? 'Install NepTok App (Share → Add to Home Screen)'
+                                : 'Install NepTok App (PWA)',
+                              icon: Smartphone,
+                              action: async () => {
+                                if (isInstallable) {
+                                  const accepted = await promptInstall();
+                                  onNotify(
+                                    accepted
+                                      ? 'NepTok installed! Launch anytime from your home screen.'
+                                      : 'Install prompt dismissed'
+                                  );
+                                } else {
+                                  onNotify('Tap Safari Share → Add to Home Screen to install NepTok.');
+                                }
+                              },
+                            },
+                          ]
+                        : []),
                       { label: 'Wallpaper (Cosmic NepTok Dark)', icon: Smartphone, action: () => onNotify('Applied NepTok Cosmic Wallpaper') },
                       { label: 'Privacy Center & Terms & Policy', icon: FileText, action: () => onNotify('NepTok Privacy Center & Terms v2026') },
                       { label: 'Deactivate Account', icon: UserX, action: () => onNotify('Account deactivation confirmation sent via OTP'), danger: true },
@@ -861,6 +910,11 @@ export const ProfileHub: React.FC<ProfileHubProps> = ({
                         </button>
                       );
                     })}
+                    {!isOnline && (
+                      <div className="px-3.5 py-2 rounded-xl bg-amber-500/15 border border-amber-400/35 text-[11px] font-semibold text-amber-200">
+                        Offline mode active — cached views ready; changes will sync when back online.
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -1140,27 +1194,43 @@ export const ProfileHub: React.FC<ProfileHubProps> = ({
                   )}
                   <button
                     type="button"
-                    onClick={() => {
-                      onUpdateUser({
-                        name: editDraft.name,
-                        bio: editDraft.bio,
-                        avatarUrl: editDraft.avatarUrl,
-                        coverBannerUrl: editDraft.coverBannerUrl,
-                        socialLinks: {
-                          youtube: editDraft.youtube,
-                          instagram: editDraft.instagram,
-                          facebook: editDraft.facebook,
-                          tiktok: editDraft.tiktok,
-                          x: editDraft.x,
-                          website: editDraft.website,
-                        },
-                      });
-                      onNotify('Profile, Cover Banner & social links saved');
-                      setSettingsView('main');
+                    disabled={isSavingProfile}
+                    onClick={async () => {
+                      setIsSavingProfile(true);
+                      try {
+                        let nextAvatarUrl = editDraft.avatarUrl;
+                        let nextCoverUrl = editDraft.coverBannerUrl;
+                        if (nextAvatarUrl.startsWith('data:')) {
+                          const up = await uploadMediaFile(nextAvatarUrl, 'avatar', 'avatar.jpg').catch(() => null);
+                          if (up?.url) nextAvatarUrl = up.url;
+                        }
+                        if (nextCoverUrl.startsWith('data:')) {
+                          const up = await uploadMediaFile(nextCoverUrl, 'cover', 'cover.jpg').catch(() => null);
+                          if (up?.url) nextCoverUrl = up.url;
+                        }
+                        onUpdateUser({
+                          name: editDraft.name,
+                          bio: editDraft.bio,
+                          avatarUrl: nextAvatarUrl,
+                          coverBannerUrl: nextCoverUrl,
+                          socialLinks: {
+                            youtube: editDraft.youtube,
+                            instagram: editDraft.instagram,
+                            facebook: editDraft.facebook,
+                            tiktok: editDraft.tiktok,
+                            x: editDraft.x,
+                            website: editDraft.website,
+                          },
+                        });
+                        onNotify('Profile, Cover Banner & social links saved');
+                        setSettingsView('main');
+                      } finally {
+                        setIsSavingProfile(false);
+                      }
                     }}
-                    className="w-full h-11 rounded-full bg-gradient-to-r from-[#FF0080] to-[#9D00FF] font-bold text-xs cursor-pointer"
+                    className="w-full h-11 rounded-full bg-gradient-to-r from-[#FF0080] to-[#9D00FF] font-bold text-xs cursor-pointer disabled:opacity-60"
                   >
-                    Save Profile Changes
+                    {isSavingProfile ? 'Saving to Cloud...' : 'Save Profile Changes'}
                   </button>
                 </div>
               )}

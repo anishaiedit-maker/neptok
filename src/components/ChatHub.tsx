@@ -15,6 +15,8 @@ import {
   ArrowLeft,
   Clock,
   X,
+  Archive,
+  Trash2,
 } from 'lucide-react';
 import { getStoryRemainingHours, isStoryActive } from '../utils/neptokLogic';
 import type { ChatThread, StoryItem } from '../types/neptok';
@@ -25,6 +27,9 @@ interface ChatHubProps {
   blockedUserIds: string[];
   onSendMessage: (chatId: string, text: string) => void;
   onToggleBlockUser: (userId: string, handle: string) => void;
+  onArchiveChat?: (chatId: string, isArchived: boolean) => void;
+  onDeleteChat?: (chatId: string) => void;
+  onDeleteMessage?: (chatId: string, messageId: string) => void;
   onCreateStory48h: () => void;
   onNotify: (msg: string) => void;
 }
@@ -35,10 +40,13 @@ export const ChatHub: React.FC<ChatHubProps> = ({
   blockedUserIds,
   onSendMessage,
   onToggleBlockUser,
+  onArchiveChat,
+  onDeleteChat,
+  onDeleteMessage,
   onCreateStory48h,
   onNotify,
 }) => {
-  const [filter, setFilter] = useState<'All' | 'Chats' | 'Group' | 'Calls' | 'Requests'>('All');
+  const [filter, setFilter] = useState<'All' | 'Chats' | 'Group' | 'Calls' | 'Requests' | 'Archived'>('All');
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messageDraft, setMessageDraft] = useState('');
   const [viewingStory, setViewingStory] = useState<StoryItem | null>(null);
@@ -63,6 +71,8 @@ export const ChatHub: React.FC<ChatHubProps> = ({
   const activeChat = chats.find((c) => c.id === activeChatId) ?? null;
 
   const filteredChats = chats.filter((c) => {
+    if (filter === 'Archived') return Boolean(c.isArchived);
+    if (c.isArchived) return false;
     if (filter === 'Group') return Boolean(c.isGroup);
     if (filter === 'Requests') return Boolean(c.isRequest);
     if (filter === 'Chats') return !c.isGroup && !c.isRequest;
@@ -107,8 +117,8 @@ export const ChatHub: React.FC<ChatHubProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="relative z-10 flex items-center gap-1.5 mt-3 overflow-x-auto">
-          {(['All', 'Chats', 'Group', 'Calls', 'Requests'] as const).map((tab) => (
+        <div className="relative z-10 flex items-center gap-1.5 mt-3 overflow-x-auto no-scrollbar">
+          {(['All', 'Chats', 'Group', 'Calls', 'Requests', 'Archived'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -261,6 +271,33 @@ export const ChatHub: React.FC<ChatHubProps> = ({
                 >
                   <Video className="w-4 h-4 text-[#FF0080]" />
                 </button>
+                {onArchiveChat && (
+                  <button
+                    type="button"
+                    aria-label={activeChat.isArchived ? 'Unarchive chat' : 'Archive chat'}
+                    onClick={() => {
+                      onArchiveChat(activeChat.id, !activeChat.isArchived);
+                      setActiveChatId(null);
+                    }}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer"
+                  >
+                    <Archive className="w-4 h-4 text-purple-200" />
+                  </button>
+                )}
+                {onDeleteChat && (
+                  <button
+                    type="button"
+                    aria-label="Delete conversation"
+                    onClick={() => {
+                      const targetId = activeChat.id;
+                      setActiveChatId(null);
+                      onDeleteChat(targetId);
+                    }}
+                    className="p-2 rounded-full bg-rose-500/20 hover:bg-rose-500/35 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-300" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => onToggleBlockUser(activeChat.userId, activeChat.handle)}
@@ -277,8 +314,20 @@ export const ChatHub: React.FC<ChatHubProps> = ({
               {activeChat.messages.map((m) => (
                 <div
                   key={m.id}
-                  className={`flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+                  className={`group flex items-end gap-1.5 ${
+                    m.sender === 'me' ? 'justify-end' : 'justify-start'
+                  }`}
                 >
+                  {m.sender === 'me' && onDeleteMessage && (
+                    <button
+                      type="button"
+                      aria-label="Delete message"
+                      onClick={() => onDeleteMessage(activeChat.id, m.id)}
+                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 rounded-full bg-white/10 hover:bg-rose-500/30 text-rose-200 transition-opacity cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                   <div
                     className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs space-y-1 ${
                       m.sender === 'me'
@@ -299,38 +348,51 @@ export const ChatHub: React.FC<ChatHubProps> = ({
             </div>
 
             {/* Composer */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!messageDraft.trim()) return;
-                onSendMessage(activeChat.id, messageDraft.trim());
-                setMessageDraft('');
-              }}
-              className="p-3 bg-[#140A26] border-t border-white/10 flex items-center gap-2"
-            >
-              <button
-                type="button"
-                aria-label="Send voice note"
-                onClick={() => onSendMessage(activeChat.id, '🎤 Voice message (0:08)')}
-                className="p-2.5 rounded-full bg-white/10 hover:bg-white/15 cursor-pointer"
+            {blockedUserIds.includes(activeChat.userId) ? (
+              <div className="p-3 bg-[#140A26] border-t border-white/10 flex items-center justify-between gap-2 text-xs text-rose-200">
+                <span>Messaging disabled — you blocked @{activeChat.handle}.</span>
+                <button
+                  type="button"
+                  onClick={() => onToggleBlockUser(activeChat.userId, activeChat.handle)}
+                  className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold cursor-pointer"
+                >
+                  Unblock
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!messageDraft.trim()) return;
+                  onSendMessage(activeChat.id, messageDraft.trim());
+                  setMessageDraft('');
+                }}
+                className="p-3 bg-[#140A26] border-t border-white/10 flex items-center gap-2"
               >
-                <Mic className="w-4 h-4 text-[#FF0080]" />
-              </button>
-              <input
-                type="text"
-                value={messageDraft}
-                onChange={(e) => setMessageDraft(e.target.value)}
-                placeholder="Write an encrypted message..."
-                className="flex-1 h-10 px-4 rounded-full bg-[#090514] border border-purple-500/35 text-xs text-white focus:outline-none focus:border-[#FF0080]"
-              />
-              <button
-                type="submit"
-                aria-label="Send chat message"
-                className="w-10 h-10 rounded-full bg-gradient-to-r from-[#FF0080] to-[#9D00FF] flex items-center justify-center cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
+                <button
+                  type="button"
+                  aria-label="Send voice note"
+                  onClick={() => onSendMessage(activeChat.id, '🎤 Voice message (0:08)')}
+                  className="p-2.5 rounded-full bg-white/10 hover:bg-white/15 cursor-pointer"
+                >
+                  <Mic className="w-4 h-4 text-[#FF0080]" />
+                </button>
+                <input
+                  type="text"
+                  value={messageDraft}
+                  onChange={(e) => setMessageDraft(e.target.value)}
+                  placeholder="Write an encrypted message..."
+                  className="flex-1 h-10 px-4 rounded-full bg-[#090514] border border-purple-500/35 text-xs text-white focus:outline-none focus:border-[#FF0080]"
+                />
+                <button
+                  type="submit"
+                  aria-label="Send chat message"
+                  className="w-10 h-10 rounded-full bg-gradient-to-r from-[#FF0080] to-[#9D00FF] flex items-center justify-center cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-white/8">

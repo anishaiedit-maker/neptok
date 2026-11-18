@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Lock, Mail, ArrowRight, ShieldCheck, KeyRound, X } from 'lucide-react';
 import { NepTokLogo } from './NepTokLogo';
+import { setAuthToken } from '../utils/apiClient';
 
 interface LoginScreenProps {
   onSuccess: () => void;
@@ -59,6 +60,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onSkip }) =
       if (!res.ok) {
         setErrorMsg(data.error || 'OTP verification failed');
       } else {
+        if (data.token) setAuthToken(data.token);
         setOtpModalOpen(false);
         onSuccess();
       }
@@ -70,6 +72,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onSkip }) =
   };
 
   const handleSocialLogin = (provider: string) => {
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.token) setAuthToken(data.token);
+      })
+      .catch(() => {});
     setStatusMsg(`Signed in via ${provider}`);
     onSuccess();
   };

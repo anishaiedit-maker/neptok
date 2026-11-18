@@ -69,6 +69,8 @@ import {
   type PostVisibility,
 } from '../utils/neptokLogic';
 import type { CreateOption, FeedPost, OriginalSound, StoryItem } from '../types/neptok';
+import { uploadMediaFile } from '../utils/apiClient';
+import { isVideoMediaUrl } from '../utils/streamHelpers';
 
 interface CreateModalAndEditorProps {
   isOpen: boolean;
@@ -231,7 +233,21 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
   // Post-Production Video / Photo / Story Editor States
   const [mediaUrl, setMediaUrl] = useState('/src/assets/images/creator_dance_kathmandu_1794926294158.jpg');
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [mediaMime, setMediaMime] = useState<string | undefined>(undefined);
+  const [r2Key, setR2Key] = useState<string | undefined>(undefined);
   const [thumbnailUrl, setThumbnailUrl] = useState('/src/assets/images/creator_dance_kathmandu_1794926294158.jpg');
+  const pendingUploadsRef = useRef<Set<Promise<void>>>(new Set());
+  const latestMediaUrlRef = useRef('/src/assets/images/creator_dance_kathmandu_1794926294158.jpg');
+  const latestThumbUrlRef = useRef('/src/assets/images/creator_dance_kathmandu_1794926294158.jpg');
+  const latestMediaMimeRef = useRef<string | undefined>(undefined);
+  const latestR2KeyRef = useRef<string | undefined>(undefined);
+
+  const trackUploadPromise = (p: Promise<void>) => {
+    pendingUploadsRef.current.add(p);
+    p.finally(() => {
+      pendingUploadsRef.current.delete(p);
+    });
+  };
   const [caption, setCaption] = useState('');
   const [hashtagsList, setHashtagsList] = useState<string[]>(['#NepTok', '#Nepal', '#8KStudio']);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -385,8 +401,15 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
           : 'video'
       );
       setMediaUrl(editingPost.mediaUrl);
-      setThumbnailUrl(editingPost.thumbnailUrl || editingPost.mediaUrl);
-      setMediaType(editingPost.mediaUrl.startsWith('data:video/') ? 'video' : 'image');
+      latestMediaUrlRef.current = editingPost.mediaUrl;
+      const thumb = editingPost.thumbnailUrl || editingPost.mediaUrl;
+      setThumbnailUrl(thumb);
+      latestThumbUrlRef.current = thumb;
+      setMediaMime(editingPost.mediaMime);
+      latestMediaMimeRef.current = editingPost.mediaMime;
+      setR2Key(editingPost.r2Key);
+      latestR2KeyRef.current = editingPost.r2Key;
+      setMediaType(isVideoMediaUrl(editingPost.mediaUrl, editingPost.mediaMime) ? 'video' : 'image');
       setCaption(editingPost.caption);
       setHashtagsList(editingPost.hashtags.length ? editingPost.hashtags : ['#NepTok']);
       setTagsList(editingPost.tags || ['Kathmandu']);
@@ -395,18 +418,32 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
     } else if (duetPost) {
       setSelectedOption('video');
       setMediaUrl(duetPost.mediaUrl);
+      latestMediaUrlRef.current = duetPost.mediaUrl;
       setThumbnailUrl(duetPost.mediaUrl);
-      setMediaType('image');
+      latestThumbUrlRef.current = duetPost.mediaUrl;
+      setMediaMime(duetPost.mediaMime);
+      latestMediaMimeRef.current = duetPost.mediaMime;
+      setR2Key(undefined);
+      latestR2KeyRef.current = undefined;
+      setMediaType(isVideoMediaUrl(duetPost.mediaUrl, duetPost.mediaMime) ? 'video' : 'image');
       setCaption(`Duet with @${duetPost.authorHandle}`);
       setHashtagsList(['#Duet', '#NepTok']);
       setStage('camera');
     } else if (initialOption) {
       setSelectedOption(initialOption);
       setMediaType('image');
+      setMediaMime(undefined);
+      latestMediaMimeRef.current = undefined;
+      setR2Key(undefined);
+      latestR2KeyRef.current = undefined;
       setStage(initialOption === 'video' || initialOption === 'reels' ? 'camera' : 'editor');
     } else {
       setSelectedOption(null);
       setMediaType('image');
+      setMediaMime(undefined);
+      latestMediaMimeRef.current = undefined;
+      setR2Key(undefined);
+      latestR2KeyRef.current = undefined;
       setStage('selector');
     }
     setSafetyScanState({ scanning: false });
@@ -698,11 +735,17 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
   const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(file);
     const isVideo = file.type.startsWith('video/');
     pushHistory();
-    setMediaUrl(url);
-    if (!isVideo) setThumbnailUrl(url);
+    setMediaUrl(previewUrl);
+    latestMediaUrlRef.current = previewUrl;
+    setMediaMime(file.type || (isVideo ? 'video/mp4' : 'image/jpeg'));
+    latestMediaMimeRef.current = file.type || (isVideo ? 'video/mp4' : 'image/jpeg');
+    if (!isVideo) {
+      setThumbnailUrl(previewUrl);
+      latestThumbUrlRef.current = previewUrl;
+    }
     setMediaType(isVideo ? 'video' : 'image');
     if (isVideo) {
       setSelectedOption('video');
@@ -712,27 +755,53 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
     }
     setStage('editor');
     onNotify(`Loaded ${file.name} into NepTok CapCut-Style Studio`);
+    trackUploadPromise(
+      uploadMediaFile(file, isVideo ? 'video' : 'image', file.name)
+        .then((uploaded) => {
+          setMediaUrl(uploaded.url);
+          latestMediaUrlRef.current = uploaded.url;
+          setMediaMime(uploaded.contentType);
+          latestMediaMimeRef.current = uploaded.contentType;
+          setR2Key(uploaded.key);
+          latestR2KeyRef.current = uploaded.key;
+          if (!isVideo) {
+            setThumbnailUrl(uploaded.url);
+            latestThumbUrlRef.current = uploaded.url;
+          }
+        })
+        .catch(() => {})
+    );
   };
 
   const handleOverlayFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    const overlayId = `ov-track-${Date.now()}`;
     pushHistory();
     setOverlayTracks((prev) => {
       const nextNum = prev.length + 1;
       return [
         ...prev,
         {
-          id: `ov-track-${Date.now()}`,
+          id: overlayId,
           label: `Overlay ${nextNum}`,
           title: file.name.slice(0, 22),
-          previewUrl: url,
+          previewUrl,
           visible: true,
           muted: false,
         },
       ];
     });
+    trackUploadPromise(
+      uploadMediaFile(file, file.type.startsWith('video/') ? 'video' : 'image', file.name)
+        .then((uploaded) => {
+          setOverlayTracks((prev) =>
+            prev.map((ov) => (ov.id === overlayId ? { ...ov, previewUrl: uploaded.url } : ov))
+          );
+        })
+        .catch(() => {})
+    );
     onNotify(`Added Overlay ${overlayTracks.length + 1}: ${file.name}`);
     e.target.value = '';
   };
@@ -764,7 +833,17 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
   const handleThumbnailFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setThumbnailUrl(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+    setThumbnailUrl(previewUrl);
+    latestThumbUrlRef.current = previewUrl;
+    trackUploadPromise(
+      uploadMediaFile(file, 'thumbnail', file.name)
+        .then((uploaded) => {
+          setThumbnailUrl(uploaded.url);
+          latestThumbUrlRef.current = uploaded.url;
+        })
+        .catch(() => {})
+    );
     onNotify(`Updated cover thumbnail: ${file.name}`);
     e.target.value = '';
   };
@@ -797,6 +876,24 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
             }
           : trk
       )
+    );
+    trackUploadPromise(
+      uploadMediaFile(file, 'audio', file.name)
+        .then((uploaded) => {
+          setAudioTracks((prev) =>
+            prev.map((trk, idx) =>
+              idx === trackIdx
+                ? {
+                    ...trk,
+                    segments: trk.segments.map((s) =>
+                      s.id === newSegId ? { ...s, url: uploaded.url } : s
+                    ),
+                  }
+                : trk
+            )
+          );
+        })
+        .catch(() => {})
     );
     setActiveTrackKind('audio');
     setSelectedAudioTarget({ trackIdx, clipId: newSegId });
@@ -857,6 +954,24 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
                 }
               : trk
           )
+        );
+        trackUploadPromise(
+          uploadMediaFile(blob, 'audio', `voiceover-${Date.now()}.webm`)
+            .then((uploaded) => {
+              setAudioTracks((prev) =>
+                prev.map((trk, idx) =>
+                  idx === trackIdx
+                    ? {
+                        ...trk,
+                        segments: trk.segments.map((s) =>
+                          s.id === newSegId ? { ...s, url: uploaded.url } : s
+                        ),
+                      }
+                    : trk
+                )
+              );
+            })
+            .catch(() => {})
         );
         setActiveTrackKind('audio');
         setSelectedAudioTarget({ trackIdx, clipId: newSegId });
@@ -1068,6 +1183,9 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
         setAiVideoError(data.error || 'AI video generation failed.');
       } else if (data.videoDataUrl) {
         setMediaUrl(data.videoDataUrl);
+        latestMediaUrlRef.current = data.videoDataUrl;
+        setMediaMime('video/mp4');
+        latestMediaMimeRef.current = 'video/mp4';
         setMediaType('video');
         setAspectRatio(aiVideoAspect);
         setSelectedOption('video');
@@ -1085,6 +1203,16 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
   };
 
   const handlePublish = async (asDraft = false) => {
+    if (pendingUploadsRef.current.size > 0) {
+      onNotify('Finalizing media upload to Cloudflare R2...');
+      await Promise.all(Array.from(pendingUploadsRef.current)).catch(() => {});
+    }
+
+    const resolvedMediaUrl = latestMediaUrlRef.current || mediaUrl;
+    const resolvedThumbnailUrl = latestThumbUrlRef.current || thumbnailUrl;
+    const resolvedMediaMime = latestMediaMimeRef.current || mediaMime;
+    const resolvedR2Key = latestR2KeyRef.current || r2Key;
+
     const primaryAudioClip =
       audioTracks
         .filter((t) => t.visible && !t.muted)
@@ -1103,8 +1231,10 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
       authorHandle: currentUser.handle,
       authorVerified: true,
       authorAvatarColor: '#FF0080',
-      mediaUrl,
-      thumbnailUrl,
+      mediaUrl: resolvedMediaUrl,
+      thumbnailUrl: resolvedThumbnailUrl,
+      mediaMime: resolvedMediaMime,
+      r2Key: resolvedR2Key,
       caption:
         caption ||
         (isDraftFlag ? 'Untitled Draft Project' : 'Created with NepTok Pro Studio (8K + Lumetri HSL)'),
@@ -1187,7 +1317,7 @@ export const CreateModalAndEditor: React.FC<CreateModalAndEditorProps> = ({
           authorId: currentUser.id,
           authorName: currentUser.name.split(' ')[0],
           authorHandle: currentUser.handle,
-          mediaUrl,
+          mediaUrl: resolvedMediaUrl,
           caption: caption || 'NepTok 48-Hour Story',
           templateName: storyTemplate,
           createdAtMs: Date.now(),

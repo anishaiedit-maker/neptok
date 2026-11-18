@@ -28,6 +28,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import type { FeedPost, ChatThread } from '../types/neptok';
+import { isVideoMediaUrl } from '../utils/streamHelpers';
 
 interface ProfileGridVideoPlayerModalProps {
   isOpen: boolean;
@@ -107,8 +108,7 @@ export const ProfileGridVideoPlayerModal: React.FC<ProfileGridVideoPlayerModalPr
   const isOwner = activePost.authorId === currentUserId;
   const isModalBusy = commentOpen || shareOpen || ownerMenuOpen || editDetailsOpen || confirmDeleteOpen;
 
-  const isVideoFileUrl = (url: string) =>
-    url.startsWith('data:video/') || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
+  const isVideoFileUrl = (url: string, mime?: string) => isVideoMediaUrl(url, mime);
 
   const stepPost = (delta: number) => {
     if (posts.length <= 1) return;
@@ -261,7 +261,7 @@ export const ProfileGridVideoPlayerModal: React.FC<ProfileGridVideoPlayerModalPr
             transform: dragOffsetY !== 0 ? `translateY(${dragOffsetY}px)` : undefined,
           }}
         >
-          {isVideoFileUrl(activePost.mediaUrl) ? (
+          {isVideoFileUrl(activePost.mediaUrl, activePost.mediaMime) ? (
             <video
               key={activePost.id}
               src={activePost.mediaUrl}

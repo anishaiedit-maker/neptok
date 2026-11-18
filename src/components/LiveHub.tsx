@@ -57,6 +57,7 @@ import {
   type GifterRankEntry,
   type BattleMultiplierChallenge,
 } from '../utils/neptokLogic';
+import { uploadMediaFile, fetchLiveStateApi, liveActionApi } from '../utils/apiClient';
 
 export interface LiveGiftEvent {
   id: number;
@@ -73,6 +74,7 @@ interface LiveHubProps {
   lastLiveGiftEvent: LiveGiftEvent | null;
   liveGiftEvents?: LiveGiftEvent[];
   onOpenRecharge?: () => void;
+  onRoomChange?: (roomId: string | null) => void;
   onNotify: (msg: string) => void;
 }
 
@@ -185,6 +187,7 @@ export const LiveHub: React.FC<LiveHubProps> = ({
   lastLiveGiftEvent,
   liveGiftEvents = [],
   onOpenRecharge,
+  onRoomChange,
   onNotify,
 }) => {
   // Stage & Pre-Live Setup State (never starts broadcasting automatically)
@@ -193,6 +196,9 @@ export const LiveHub: React.FC<LiveHubProps> = ({
   const [liveTitle, setLiveTitle] = useState('Kathmandu Evening Live & Creators Hangout');
   const [titleError, setTitleError] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState(PRESET_THUMBNAILS[0].url);
+  const latestThumbRef = useRef(PRESET_THUMBNAILS[0].url);
+  const thumbUploadRef = useRef<Promise<void> | null>(null);
+  const activeRoomIdRef = useRef<string | null>(null);
   const [guestJoinOpen, setGuestJoinOpen] = useState(true);
   const [coinsGoal, setCoinsGoal] = useState(1000);
   const [heartsGoal, setHeartsGoal] = useState(2500);
@@ -326,6 +332,18 @@ export const LiveHub: React.FC<LiveHubProps> = ({
     }))
   );
 
+  // Hydrate initial host streak / top gifters from backend when available
+  useEffect(() => {
+    fetchLiveStateApi()
+      .then((res) => {
+        const myRoom = res.rooms?.find((r) => r.host_id === currentUser.id);
+        if (myRoom && typeof myRoom.win_streak === 'number' && myRoom.win_streak > 0) {
+          setHostWinStreak(myRoom.win_streak);
+        }
+      })
+      .catch(() => {});
+  }, [currentUser.id]);
+
   // Continuous Live Duration Timer
   useEffect(() => {
     if (liveStage !== 'live') return;
@@ -458,6 +476,20 @@ export const LiveHub: React.FC<LiveHubProps> = ({
       winnerName: won ? currentUser.name : opp?.name || 'Guest',
       winnerHandle: won ? `@${currentUser.handle}` : oppHandle,
     });
+    if (activeRoomIdRef.current) {
+      liveActionApi({
+        action: 'finish_battle',
+        roomId: activeRoomIdRef.current,
+        myScore: finalMyScore,
+        oppScore: finalOppScore,
+      })
+        .then((res) => {
+          if (typeof res.hostWinStreak === 'number') {
+            setHostWinStreak(res.hostWinStreak);
+          }
+        })
+        .catch(() => {});
+    }
     onNotify(won ? 'NEP Battle Winner: Victory!' : 'NEP Battle completed!');
   };
 
@@ -506,15 +538,30 @@ export const LiveHub: React.FC<LiveHubProps> = ({
   const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setThumbnailUrl(URL.createObjectURL(file));
+    const preview = URL.createObjectURL(file);
+    setThumbnailUrl(preview);
+    latestThumbRef.current = preview;
+    const p = uploadMediaFile(file, 'thumbnail', file.name)
+      .then((uploaded) => {
+        setThumbnailUrl(uploaded.url);
+        latestThumbRef.current = uploaded.url;
+      })
+      .catch(() => {});
+    thumbUploadRef.current = p;
     onNotify(`Live thumbnail updated: ${file.name}`);
   };
 
-  const handleStartLive = () => {
+  const handleStartLive = async () => {
     if (!liveTitle.trim()) {
       setTitleError('Please enter a Live Title before going live.');
       return;
     }
+    if (thumbUploadRef.current) {
+      await thumbUploadRef.current.catch(() => {});
+    }
+    const roomId = `live-${currentUser.id}-${Date.now()}`;
+    activeRoomIdRef.current = roomId;
+    onRoomChange?.(roomId);
     setTitleError(null);
     setLiveDurationSec(0);
     setAcceptedGuests([]);
@@ -528,10 +575,25 @@ export const LiveHub: React.FC<LiveHubProps> = ({
     setPreLivePanel('none');
     setShowGoalEditor(false);
     setLiveStage('live');
+    liveActionApi({
+      action: 'start',
+      roomId,
+      title: liveTitle.trim(),
+      mode: selectedMode,
+      thumbnailUrl: latestThumbRef.current || thumbnailUrl,
+      coinsGoal,
+      heartsGoal,
+    }).catch(() => {});
     onNotify(`Now Live (${selectedMode.toUpperCase()}): ${liveTitle.trim()}`);
   };
 
   const handleEndLive = () => {
+    const endingRoomId = activeRoomIdRef.current;
+    if (endingRoomId) {
+      liveActionApi({ action: 'end', roomId: endingRoomId }).catch(() => {});
+    }
+    activeRoomIdRef.current = null;
+    onRoomChange?.(null);
     setLiveStage('pre-live');
     setAcceptedGuests([]);
     setBattleOpponent(null);
@@ -555,6 +617,13 @@ export const LiveHub: React.FC<LiveHubProps> = ({
     }
     const nextList = [...acceptedGuests, { ...candidate, micOn: true, camOn: true }];
     setAcceptedGuests(nextList);
+    if (activeRoomIdRef.current) {
+      liveActionApi({
+        action: 'sync_guests',
+        roomId: activeRoomIdRef.current,
+        guests: nextList,
+      }).catch(() => {});
+    }
     if (!canStartLiveBattle(1 + nextList.length)) {
       setBattleRequestState('idle');
       setBattleOpponent(null);
@@ -1484,6 +1553,14 @@ export const LiveHub: React.FC<LiveHubProps> = ({
                 setOpponentScore(98430);
                 setMyBattleGiftsCount(24);
                 setOppBattleGiftsCount(18);
+                const oppHandle = battleOpponent?.handle || acceptedGuests[0]?.handle || 'sita_kathmandu';
+                if (activeRoomIdRef.current) {
+                  liveActionApi({
+                    action: 'start_battle',
+                    roomId: activeRoomIdRef.current,
+                    opponentHandle: oppHandle,
+                  }).catch(() => {});
+                }
                 onNotify(`@${battleOpponent?.handle || acceptedGuests[0]?.handle || 'Guest'} accepted! 03:00 Battle started!`);
               }}
               className="px-3 py-1 rounded-full bg-gradient-to-r from-[#FF0080] to-[#9D00FF] text-[11px] font-bold cursor-pointer"
@@ -1622,6 +1699,13 @@ export const LiveHub: React.FC<LiveHubProps> = ({
                 setBattleResultOverlay(null);
                 setBattleRequestState('active');
                 setBattleSeconds(180);
+                if (activeRoomIdRef.current) {
+                  liveActionApi({
+                    action: 'start_battle',
+                    roomId: activeRoomIdRef.current,
+                    opponentHandle: battleOpponent?.handle || acceptedGuests[0]?.handle || 'sita_kathmandu',
+                  }).catch(() => {});
+                }
               }}
               className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FF0080] to-[#9D00FF] text-[10px] font-bold cursor-pointer"
             >
@@ -2291,6 +2375,13 @@ export const LiveHub: React.FC<LiveHubProps> = ({
                           e.stopPropagation();
                           const next = acceptedGuests.filter((x) => x.id !== g.id);
                           setAcceptedGuests(next);
+                          if (activeRoomIdRef.current) {
+                            liveActionApi({
+                              action: 'sync_guests',
+                              roomId: activeRoomIdRef.current,
+                              guests: next,
+                            }).catch(() => {});
+                          }
                           if (battleOpponent?.id === g.id || !canStartLiveBattle(1 + next.length)) {
                             setBattleRequestState('idle');
                             setBattleOpponent(null);
@@ -2567,7 +2658,15 @@ export const LiveHub: React.FC<LiveHubProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setAcceptedGuests((prev) => prev.filter((x) => x.id !== g.id));
+                      const next = acceptedGuests.filter((x) => x.id !== g.id);
+                      setAcceptedGuests(next);
+                      if (activeRoomIdRef.current) {
+                        liveActionApi({
+                          action: 'sync_guests',
+                          roomId: activeRoomIdRef.current,
+                          guests: next,
+                        }).catch(() => {});
+                      }
                       onNotify(`@${g.handle} left stage`);
                     }}
                     className="text-rose-400 text-[11px] font-bold flex items-center gap-1 cursor-pointer"

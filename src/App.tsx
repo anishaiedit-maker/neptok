@@ -58,6 +58,23 @@ import { CreatorStudio } from './components/CreatorStudio';
 import { GiftStoreModal } from './components/GiftStoreModal';
 import { Gift3DOverlay } from './components/Gift3DOverlay';
 import { AdminDashboard } from './components/AdminDashboard';
+import {
+  fetchAuthProfile,
+  updateAuthProfile,
+  logoutAuthApi,
+  fetchVideosApi,
+  saveOrPublishVideoApi,
+  patchVideoApi,
+  deleteVideoApi,
+  interactVideoApi,
+  fetchMessagesApi,
+  sendMessageApi,
+  archiveChatApi,
+  deleteMessageOrChatApi,
+  toggleBlockApi,
+  liveActionApi,
+  getAuthToken,
+} from './utils/apiClient';
 
 export default function App() {
   const autostart =
@@ -96,6 +113,7 @@ export default function App() {
   const [giftTargetPostId, setGiftTargetPostId] = useState<string | null>(null);
   const [giftTargetLiveHandle, setGiftTargetLiveHandle] = useState<string | null>(null);
   const [active3DGift, setActive3DGift] = useState<GiftItem | null>(null);
+  const [activeLiveRoomId, setActiveLiveRoomId] = useState<string | null>(null);
   const [lastLiveGiftEvent, setLastLiveGiftEvent] = useState<LiveGiftEvent | null>(null);
   const [liveGiftEvents, setLiveGiftEvents] = useState<LiveGiftEvent[]>([]);
   const [giftCombo, setGiftCombo] = useState<{ giftId: number; count: number }>({
@@ -107,6 +125,52 @@ export default function App() {
   useEffect(() => {
     coinsRef.current = user.coins;
   }, [user.coins]);
+
+  // Hydrate persistent state from Cloudflare D1 / local Express API on mount & app transition
+  useEffect(() => {
+    if (authStage !== 'app' && !getAuthToken()) return;
+    let cancelled = false;
+
+    Promise.allSettled([
+      fetchAuthProfile(),
+      fetchVideosApi('all'),
+      fetchMessagesApi(),
+      fetch('/api/wallet').then((r) => (r.ok ? r.json() : null)),
+    ]).then(([authRes, videosRes, msgRes, walletRes]) => {
+      if (cancelled) return;
+      if (authRes.status === 'fulfilled' && authRes.value?.user) {
+        setUser(authRes.value.user);
+        coinsRef.current = authRes.value.user.coins;
+      }
+      if (videosRes.status === 'fulfilled' && Array.isArray(videosRes.value?.videos)) {
+        setPosts(videosRes.value.videos);
+      }
+      if (msgRes.status === 'fulfilled' && msgRes.value) {
+        if (Array.isArray(msgRes.value.chats)) setChats(msgRes.value.chats);
+        if (Array.isArray(msgRes.value.blockedUsers)) setBlockedUsers(msgRes.value.blockedUsers);
+      }
+      if (walletRes.status === 'fulfilled' && walletRes.value) {
+        if (Array.isArray(walletRes.value.transactions) && walletRes.value.transactions.length > 0) {
+          setTransactions(walletRes.value.transactions);
+        }
+        if (typeof walletRes.value.coins === 'number') {
+          setUser((prev) => ({
+            ...prev,
+            coins: walletRes.value.coins,
+            creatorBalanceUsd:
+              typeof walletRes.value.creatorBalanceUsd === 'number'
+                ? walletRes.value.creatorBalanceUsd
+                : prev.creatorBalanceUsd,
+          }));
+          coinsRef.current = walletRes.value.coins;
+        }
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authStage]);
   const [giftHistory, setGiftHistory] = useState<
     Array<{
       id: string;
@@ -182,9 +246,11 @@ export default function App() {
           : p
       )
     );
+    interactVideoApi(postId, 'like').catch(() => {});
   };
 
   const handleAddComment = (postId: string, text: string) => {
+    const tempId = `c-${Date.now()}`;
     setPosts((prev) =>
       prev.map((p) =>
         p.id === postId
@@ -193,7 +259,7 @@ export default function App() {
               comments: [
                 ...p.comments,
                 {
-                  id: `c-${Date.now()}`,
+                  id: tempId,
                   authorName: user.name,
                   authorHandle: user.handle,
                   text,
@@ -205,6 +271,7 @@ export default function App() {
           : p
       )
     );
+    interactVideoApi(postId, 'comment', text).catch(() => {});
     notify('Comment posted');
   };
 
@@ -220,20 +287,24 @@ export default function App() {
           : p
       )
     );
+    interactVideoApi(postId, 'repost').catch(() => {});
   };
 
   const handleToggleSave = (postId: string) => {
     setPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, savedByMe: !p.savedByMe } : p))
     );
+    interactVideoApi(postId, 'save').catch(() => {});
   };
 
   const handleUpdatePost = (postId: string, patch: Partial<FeedPost>) => {
     setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...patch } : p)));
+    patchVideoApi(postId, patch).catch(() => {});
   };
 
   const handleDeletePost = (postId: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== postId));
+    deleteVideoApi(postId).catch(() => {});
     notify('Post deleted');
   };
 
@@ -243,11 +314,13 @@ export default function App() {
       if (prev.some((b) => b.id === userId)) return prev;
       return [...prev, { id: userId, handle, name: handle }];
     });
+    toggleBlockApi(userId, handle, handle, true).catch(() => {});
     notify(`Blocked @${handle}. Their content is now hidden.`);
   };
 
   const handleUnblockUser = (userId: string) => {
     setBlockedUsers((prev) => prev.filter((b) => b.id !== userId));
+    toggleBlockApi(userId, '', '', false).catch(() => {});
     notify('User unblocked');
   };
 
@@ -267,12 +340,32 @@ export default function App() {
     coinsRef.current = check.remainingCoins;
     setUser((prev) => ({ ...prev, coins: Math.max(0, prev.coins - gift.coins) }));
 
+    const isLiveSession = activeTab === 'live';
+    const targetHandle = (
+      giftTargetLiveHandle ||
+      giftRecipientLabel.replace(/^@/, '').split(/\s+/)[0] ||
+      user.handle
+    ).replace(/^@/, '');
+
     // Fire-and-forget server ledger sync without blocking rapid taps
-    fetch('/api/gifts/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ giftId: gift.id, recipient: giftRecipientLabel }),
-    }).catch(() => {});
+    if (isLiveSession) {
+      liveActionApi({
+        action: 'gift',
+        roomId: activeLiveRoomId || undefined,
+        giftId: gift.id,
+        recipientHandle: targetHandle,
+      }).catch(() => {});
+    } else {
+      fetch('/api/gifts/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          giftId: gift.id,
+          recipient: giftRecipientLabel,
+          postId: giftTargetPostId,
+        }),
+      }).catch(() => {});
+    }
 
     if (giftTargetPostId) {
       setPosts((prev) =>
@@ -284,13 +377,7 @@ export default function App() {
       );
     }
 
-    const isLiveSession = activeTab === 'live';
     if (isLiveSession) {
-      const targetHandle = (
-        giftTargetLiveHandle ||
-        giftRecipientLabel.replace(/^@/, '').split(/\s+/)[0] ||
-        user.handle
-      ).replace(/^@/, '');
       giftSeqRef.current += 1;
       const evt: LiveGiftEvent = {
         id: giftSeqRef.current,
@@ -463,6 +550,7 @@ export default function App() {
     }
 
     const handleSendToFriend = (chatId: string, post: FeedPost) => {
+      const sharedTitle = `@${post.authorHandle} · ${post.caption.slice(0, 40)}`;
       setChats((prev) =>
         prev.map((c) =>
           c.id === chatId
@@ -476,7 +564,7 @@ export default function App() {
                     id: `m-${Date.now()}`,
                     sender: 'me',
                     text: post.caption,
-                    sharedPostTitle: `@${post.authorHandle} · ${post.caption.slice(0, 40)}`,
+                    sharedPostTitle: sharedTitle,
                     time: 'Just now',
                   },
                 ],
@@ -484,6 +572,7 @@ export default function App() {
             : c
         )
       );
+      sendMessageApi(chatId, post.caption, sharedTitle).catch(() => {});
       notify('Sent post to NepTok friend');
     };
 
@@ -563,30 +652,7 @@ export default function App() {
             onUpdatePost={handleUpdatePost}
             onDeletePost={handleDeletePost}
             onBlockUser={handleBlockUser}
-            onSendToFriend={(chatId, post) => {
-              setChats((prev) =>
-                prev.map((c) =>
-                  c.id === chatId
-                    ? {
-                        ...c,
-                        lastMessage: `Shared post by @${post.authorHandle}`,
-                        lastTime: 'Just now',
-                        messages: [
-                          ...c.messages,
-                          {
-                            id: `m-${Date.now()}`,
-                            sender: 'me',
-                            text: post.caption,
-                            sharedPostTitle: `@${post.authorHandle} · ${post.caption.slice(0, 40)}`,
-                            time: 'Just now',
-                          },
-                        ],
-                      }
-                    : c
-                )
-              );
-              notify('Sent post to NepTok friend');
-            }}
+            onSendToFriend={handleSendToFriend}
             onAddToStory48h={(post) => {
               setStories((prev) => [
                 {
@@ -637,6 +703,7 @@ export default function App() {
               setSubPage('none');
               setActiveTab('wallet');
             }}
+            onRoomChange={setActiveLiveRoomId}
             onNotify={notify}
           />
         );
@@ -647,6 +714,7 @@ export default function App() {
             stories={stories}
             blockedUserIds={blockedIds}
             onSendMessage={(chatId, text) => {
+              const tempId = `m-${Date.now()}`;
               setChats((prev) =>
                 prev.map((c) =>
                   c.id === chatId
@@ -656,12 +724,55 @@ export default function App() {
                         lastTime: 'Just now',
                         messages: [
                           ...c.messages,
-                          { id: `m-${Date.now()}`, sender: 'me', text, time: 'Just now' },
+                          { id: tempId, sender: 'me', text, time: 'Just now' },
                         ],
                       }
                     : c
                 )
               );
+              sendMessageApi(chatId, text)
+                .then((res) => {
+                  if (res?.message?.id) {
+                    setChats((prev) =>
+                      prev.map((c) =>
+                        c.id === chatId
+                          ? {
+                              ...c,
+                              messages: c.messages.map((m) =>
+                                m.id === tempId ? res.message : m
+                              ),
+                            }
+                          : c
+                      )
+                    );
+                  }
+                })
+                .catch((err) => {
+                  notify(err instanceof Error ? err.message : 'Message failed');
+                });
+            }}
+            onArchiveChat={(chatId, isArchived) => {
+              setChats((prev) =>
+                prev.map((c) => (c.id === chatId ? { ...c, isArchived } : c))
+              );
+              archiveChatApi(chatId, isArchived).catch(() => {});
+            }}
+            onDeleteChat={(chatId) => {
+              setChats((prev) => prev.filter((c) => c.id !== chatId));
+              deleteMessageOrChatApi({ chatId }).catch(() => {});
+            }}
+            onDeleteMessage={(chatId, messageId) => {
+              setChats((prev) =>
+                prev.map((c) =>
+                  c.id === chatId
+                    ? {
+                        ...c,
+                        messages: c.messages.filter((m) => m.id !== messageId),
+                      }
+                    : c
+                )
+              );
+              deleteMessageOrChatApi({ chatId, messageId }).catch(() => {});
             }}
             onToggleBlockUser={(uid, handle) => {
               if (blockedIds.includes(uid)) {
@@ -739,7 +850,14 @@ export default function App() {
             onDeletePost={handleDeletePost}
             onSendToFriend={handleSendToFriend}
             onAddToStory48h={handleAddToStory48h}
-            onUpdateUser={(patch) => setUser((prev) => ({ ...prev, ...patch }))}
+            onUpdateUser={(patch) => {
+              setUser((prev) => ({ ...prev, ...patch }));
+              updateAuthProfile(patch)
+                .then((res) => {
+                  if (res?.user) setUser(res.user);
+                })
+                .catch(() => {});
+            }}
             onUnblockUser={handleUnblockUser}
             onOpenCreatorStudio={() => setSubPage('creator-studio')}
             onOpenWallet={() => {
@@ -748,6 +866,7 @@ export default function App() {
             }}
             onOpenAdminDashboard={() => setSurfaceMode('admin')}
             onLogout={() => {
+              logoutAuthApi().catch(() => {});
               setAuthStage('login');
               notify('Logged out securely');
             }}
@@ -1090,6 +1209,7 @@ export default function App() {
             if (exists) return prev.map((p) => (p.id === publishedPost.id ? publishedPost : p));
             return [publishedPost, ...prev];
           });
+          saveOrPublishVideoApi(publishedPost).catch(() => {});
           setSubPage('none');
           setActiveTab('home');
         }}
@@ -1100,6 +1220,7 @@ export default function App() {
             if (exists) return prev.map((p) => (p.id === savedDraft.id ? savedDraft : p));
             return [savedDraft, ...prev];
           });
+          saveOrPublishVideoApi(savedDraft).catch(() => {});
         }}
         onPublishStory={(newStory) => {
           setStories((prev) => [newStory, ...prev]);
